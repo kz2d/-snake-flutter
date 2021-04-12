@@ -38,11 +38,12 @@ class _MyHomePageState extends State<MyHomePage> {
     [0, 0],
     [1, 0]
   ];
-  int prevscore=0;
+  int prevscore = 0;
   List<int> apple = [5, 5];
   int direction = 1;
   bool value = false;
   Random _random = Random();
+  int previosMove = 0;
 
   @override
   void initState() {
@@ -54,21 +55,24 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void move() {
+    if(direction==0)return;
     List<int> head = [
       snake.last[0] + direction * (direction % 2),
       snake.last[1] + (direction / 3).round()
     ];
+    previosMove = direction;
     head[0] = head[0] == items_in_a_row ? 0 : head[0];
     head[1] = head[1] == items_in_a_column ? 0 : head[1];
     head[0] = head[0] < 0 ? items_in_a_row - 1 : head[0];
     head[1] = head[1] < 0 ? items_in_a_column - 1 : head[1];
 
-    if (direction!=0&&snake
-        .firstWhere((element) => listEquals(element, head),
-            orElse: () => List.of([]))
-        .isNotEmpty) {
+    if (direction != 0 &&
+        snake
+            .firstWhere((element) => listEquals(element, head),
+                orElse: () => List.of([]))
+            .isNotEmpty) {
       direction = 0;
-      prevscore=snake.length;
+      prevscore = snake.length;
       restart();
       return;
     }
@@ -84,14 +88,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void restart() {
+    previosMove = 1;
     snake = [
       [0, 0],
       [1, 0]
     ];
     apple = [
-        _random.nextInt(items_in_a_row),
-        _random.nextInt(items_in_a_column)
-      ];
+      _random.nextInt(items_in_a_row),
+      _random.nextInt(items_in_a_column)
+    ];
   }
 
   @override
@@ -127,12 +132,15 @@ class _MyHomePageState extends State<MyHomePage> {
         GestureDetector(
             onPanUpdate: (something) {
               Offset position = something.localPosition - Offset(100, 100);
+              int mayDirection = direction;
               if (position.distance < 30) return;
               if (position.dx.abs() > position.dy.abs()) {
-                direction = position.dx.sign.toInt();
+                mayDirection = position.dx.sign.toInt();
               } else {
-                direction = -2 * position.dy.sign.toInt();
+                mayDirection = -2 * position.dy.sign.toInt();
               }
+              direction =
+                  mayDirection != -previosMove ? mayDirection : direction;
             },
             child: Container(
               decoration:
